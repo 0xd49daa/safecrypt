@@ -1,6 +1,6 @@
 {
   "name": "@0xd49daa/safecrypt",
-  "version": "0.1.3",
+  "version": "0.1.4",
   "description": "Type-safe encryption library built on libsodium",
   "license": "MIT",
   "repository": {

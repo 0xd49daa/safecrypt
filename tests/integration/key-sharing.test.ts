@@ -10,10 +10,11 @@ import {
   deriveSeed,
   deriveEncryptionKeyPair,
   deriveIdentityKeyPair,
-  CONTEXT_CRUST,
-  CONTEXT_ICP,
-  CONTEXT_ENCRYPT,
 } from '../../src/key-derivation.ts';
+
+// Test contexts for domain separation (8 characters each)
+const CONTEXT_IDENTITY = 'identity';
+const CONTEXT_SIGNING = 'signing_';
 import {
   wrapKeySeal,
   unwrapKeySeal,
@@ -324,11 +325,11 @@ describe('integration: key-sharing', () => {
       const seed1 = await deriveSeed(TEST_MNEMONIC_12);
       const seed2 = await deriveSeed(TEST_MNEMONIC_12);
 
-      const crustKeyPair1 = await deriveIdentityKeyPair(seed1, CONTEXT_CRUST, 0);
-      const crustKeyPair2 = await deriveIdentityKeyPair(seed2, CONTEXT_CRUST, 0);
+      const identityKeyPair1 = await deriveIdentityKeyPair(seed1, CONTEXT_IDENTITY, 0);
+      const identityKeyPair2 = await deriveIdentityKeyPair(seed2, CONTEXT_IDENTITY, 0);
 
-      expectBytesEqual(crustKeyPair1.publicKey, crustKeyPair2.publicKey);
-      expectBytesEqual(crustKeyPair1.privateKey, crustKeyPair2.privateKey);
+      expectBytesEqual(identityKeyPair1.publicKey, identityKeyPair2.publicKey);
+      expectBytesEqual(identityKeyPair1.privateKey, identityKeyPair2.privateKey);
     });
 
     test('different indexes produce different keys', async () => {
@@ -346,10 +347,10 @@ describe('integration: key-sharing', () => {
     test('different contexts produce different keys', async () => {
       const seed = await deriveSeed(TEST_MNEMONIC_12);
 
-      const crustKeyPair = await deriveIdentityKeyPair(seed, CONTEXT_CRUST, 0);
-      const icpKeyPair = await deriveIdentityKeyPair(seed, CONTEXT_ICP, 0);
+      const identityKeyPair = await deriveIdentityKeyPair(seed, CONTEXT_IDENTITY, 0);
+      const signingKeyPair = await deriveIdentityKeyPair(seed, CONTEXT_SIGNING, 0);
 
-      expectBytesNotEqual(crustKeyPair.publicKey, icpKeyPair.publicKey);
+      expectBytesNotEqual(identityKeyPair.publicKey, signingKeyPair.publicKey);
     });
   });
 });

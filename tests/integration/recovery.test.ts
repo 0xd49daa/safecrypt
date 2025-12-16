@@ -8,9 +8,11 @@ import {
   deriveSeed,
   deriveEncryptionKeyPair,
   deriveIdentityKeyPair,
-  CONTEXT_CRUST,
-  CONTEXT_ICP,
 } from '../../src/key-derivation.ts';
+
+// Test contexts for domain separation (8 characters each)
+const CONTEXT_IDENTITY = 'identity';
+const CONTEXT_SIGNING = 'signing_';
 import {
   wrapKeySeal,
   unwrapKeySeal,
@@ -33,16 +35,16 @@ describe('integration: recovery', () => {
       const seed = await deriveSeed(TEST_MNEMONIC_24);
 
       const encryptionKeyPair = await deriveEncryptionKeyPair(seed, 0);
-      const crustIdentity = await deriveIdentityKeyPair(seed, CONTEXT_CRUST, 0);
-      const icpIdentity = await deriveIdentityKeyPair(seed, CONTEXT_ICP, 0);
+      const identityKeyPair1 = await deriveIdentityKeyPair(seed, CONTEXT_IDENTITY, 0);
+      const identityKeyPair2 = await deriveIdentityKeyPair(seed, CONTEXT_SIGNING, 0);
 
       expect(seed.length).toBe(64);
       expect(encryptionKeyPair.publicKey.length).toBe(32);
       expect(encryptionKeyPair.privateKey.length).toBe(32);
-      expect(crustIdentity.publicKey.length).toBe(32);
-      expect(crustIdentity.privateKey.length).toBe(64);
-      expect(icpIdentity.publicKey.length).toBe(32);
-      expect(icpIdentity.privateKey.length).toBe(64);
+      expect(identityKeyPair1.publicKey.length).toBe(32);
+      expect(identityKeyPair1.privateKey.length).toBe(64);
+      expect(identityKeyPair2.publicKey.length).toBe(32);
+      expect(identityKeyPair2.privateKey.length).toBe(64);
     });
 
     test('recovers keys with optional passphrase', async () => {

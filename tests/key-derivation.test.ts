@@ -4,10 +4,12 @@ import {
   deriveSubkey,
   deriveEncryptionKeyPair,
   deriveIdentityKeyPair,
-  CONTEXT_CRUST,
-  CONTEXT_ICP,
-  CONTEXT_ENCRYPT,
 } from '../src/key-derivation.ts';
+
+// Test contexts for domain separation (8 characters each)
+const CONTEXT_IDENTITY = 'identity';
+const CONTEXT_SIGNING = 'signing_';
+const CONTEXT_ENCRYPT = 'encrypt_';
 import { toHex } from '../src/bytes.ts';
 import { SIZES } from '../src/types.ts';
 import type { Seed } from '../src/branded.ts';
@@ -90,13 +92,13 @@ describe('deriveSubkey', () => {
 
   test('produces different keys for different contexts', async () => {
     const seed = await deriveSeed(TEST_MNEMONIC);
-    const subkeyCrust = await deriveSubkey(seed, 0, CONTEXT_CRUST);
-    const subkeyIcp = await deriveSubkey(seed, 0, CONTEXT_ICP);
+    const subkeyIdentity = await deriveSubkey(seed, 0, CONTEXT_IDENTITY);
+    const subkeySigning = await deriveSubkey(seed, 0, CONTEXT_SIGNING);
     const subkeyEncrypt = await deriveSubkey(seed, 0, CONTEXT_ENCRYPT);
 
-    expect(toHex(subkeyCrust)).not.toBe(toHex(subkeyIcp));
-    expect(toHex(subkeyCrust)).not.toBe(toHex(subkeyEncrypt));
-    expect(toHex(subkeyIcp)).not.toBe(toHex(subkeyEncrypt));
+    expect(toHex(subkeyIdentity)).not.toBe(toHex(subkeySigning));
+    expect(toHex(subkeyIdentity)).not.toBe(toHex(subkeyEncrypt));
+    expect(toHex(subkeySigning)).not.toBe(toHex(subkeyEncrypt));
   });
 
   test('produces deterministic subkeys', async () => {
@@ -170,7 +172,7 @@ describe('deriveEncryptionKeyPair', () => {
 describe('deriveIdentityKeyPair', () => {
   test('derives valid Ed25519 keypair', async () => {
     const seed = await deriveSeed(TEST_MNEMONIC);
-    const keypair = await deriveIdentityKeyPair(seed, CONTEXT_CRUST, 0);
+    const keypair = await deriveIdentityKeyPair(seed, CONTEXT_IDENTITY, 0);
 
     expect(keypair.publicKey.length).toBe(SIZES.ED25519_PUBLIC_KEY);
     expect(keypair.privateKey.length).toBe(SIZES.ED25519_PRIVATE_KEY);
@@ -178,8 +180,8 @@ describe('deriveIdentityKeyPair', () => {
 
   test('produces deterministic keypairs', async () => {
     const seed = await deriveSeed(TEST_MNEMONIC);
-    const keypair1 = await deriveIdentityKeyPair(seed, CONTEXT_CRUST, 0);
-    const keypair2 = await deriveIdentityKeyPair(seed, CONTEXT_CRUST, 0);
+    const keypair1 = await deriveIdentityKeyPair(seed, CONTEXT_IDENTITY, 0);
+    const keypair2 = await deriveIdentityKeyPair(seed, CONTEXT_IDENTITY, 0);
 
     expect(toHex(keypair1.publicKey)).toBe(toHex(keypair2.publicKey));
     expect(toHex(keypair1.privateKey)).toBe(toHex(keypair2.privateKey));
@@ -187,32 +189,42 @@ describe('deriveIdentityKeyPair', () => {
 
   test('produces different keypairs for different contexts', async () => {
     const seed = await deriveSeed(TEST_MNEMONIC);
-    const keypairCrust = await deriveIdentityKeyPair(seed, CONTEXT_CRUST, 0);
-    const keypairIcp = await deriveIdentityKeyPair(seed, CONTEXT_ICP, 0);
+    const keypairIdentity = await deriveIdentityKeyPair(seed, CONTEXT_IDENTITY, 0);
+    const keypairSigning = await deriveIdentityKeyPair(seed, CONTEXT_SIGNING, 0);
 
-    expect(toHex(keypairCrust.publicKey)).not.toBe(toHex(keypairIcp.publicKey));
+    expect(toHex(keypairIdentity.publicKey)).not.toBe(toHex(keypairSigning.publicKey));
   });
 
   test('produces different keypairs for different indices', async () => {
     const seed = await deriveSeed(TEST_MNEMONIC);
-    const keypair0 = await deriveIdentityKeyPair(seed, CONTEXT_CRUST, 0);
-    const keypair1 = await deriveIdentityKeyPair(seed, CONTEXT_CRUST, 1);
+    const keypair0 = await deriveIdentityKeyPair(seed, CONTEXT_IDENTITY, 0);
+    const keypair1 = await deriveIdentityKeyPair(seed, CONTEXT_IDENTITY, 1);
 
     expect(toHex(keypair0.publicKey)).not.toBe(toHex(keypair1.publicKey));
   });
 });
 
-describe('context constants', () => {
-  test('CONTEXT_CRUST is 8 bytes', () => {
-    expect(CONTEXT_CRUST.length).toBe(SIZES.KDF_CONTEXT);
+describe('context validation', () => {
+  test('CONTEXT_IDENTITY is 8 characters', () => {
+    expect(CONTEXT_IDENTITY.length).toBe(SIZES.KDF_CONTEXT);
   });
 
-  test('CONTEXT_ICP is 8 bytes', () => {
-    expect(CONTEXT_ICP.length).toBe(SIZES.KDF_CONTEXT);
+  test('CONTEXT_SIGNING is 8 characters', () => {
+    expect(CONTEXT_SIGNING.length).toBe(SIZES.KDF_CONTEXT);
   });
 
-  test('CONTEXT_ENCRYPT is 8 bytes', () => {
+  test('CONTEXT_ENCRYPT is 8 characters', () => {
     expect(CONTEXT_ENCRYPT.length).toBe(SIZES.KDF_CONTEXT);
+  });
+
+  test('throws INVALID_CONTEXT_SIZE for short context', async () => {
+    const seed = await deriveSeed(TEST_MNEMONIC);
+    await expect(deriveSubkey(seed, 0, 'short')).rejects.toThrow('Invalid context size');
+  });
+
+  test('throws INVALID_CONTEXT_SIZE for long context', async () => {
+    const seed = await deriveSeed(TEST_MNEMONIC);
+    await expect(deriveSubkey(seed, 0, 'toolongcontext')).rejects.toThrow('Invalid context size');
   });
 });
 
@@ -222,19 +234,19 @@ describe('determinism across calls', () => {
 
     const seed1 = await deriveSeed(mnemonic);
     const encKp1 = await deriveEncryptionKeyPair(seed1, 0);
-    const crustKp1 = await deriveIdentityKeyPair(seed1, CONTEXT_CRUST, 0);
-    const icpKp1 = await deriveIdentityKeyPair(seed1, CONTEXT_ICP, 0);
+    const identityKp1 = await deriveIdentityKeyPair(seed1, CONTEXT_IDENTITY, 0);
+    const signingKp1 = await deriveIdentityKeyPair(seed1, CONTEXT_SIGNING, 0);
 
     const seed2 = await deriveSeed(mnemonic);
     const encKp2 = await deriveEncryptionKeyPair(seed2, 0);
-    const crustKp2 = await deriveIdentityKeyPair(seed2, CONTEXT_CRUST, 0);
-    const icpKp2 = await deriveIdentityKeyPair(seed2, CONTEXT_ICP, 0);
+    const identityKp2 = await deriveIdentityKeyPair(seed2, CONTEXT_IDENTITY, 0);
+    const signingKp2 = await deriveIdentityKeyPair(seed2, CONTEXT_SIGNING, 0);
 
     expect(toHex(encKp1.publicKey)).toBe(toHex(encKp2.publicKey));
     expect(toHex(encKp1.privateKey)).toBe(toHex(encKp2.privateKey));
-    expect(toHex(crustKp1.publicKey)).toBe(toHex(crustKp2.publicKey));
-    expect(toHex(crustKp1.privateKey)).toBe(toHex(crustKp2.privateKey));
-    expect(toHex(icpKp1.publicKey)).toBe(toHex(icpKp2.publicKey));
-    expect(toHex(icpKp1.privateKey)).toBe(toHex(icpKp2.privateKey));
+    expect(toHex(identityKp1.publicKey)).toBe(toHex(identityKp2.publicKey));
+    expect(toHex(identityKp1.privateKey)).toBe(toHex(identityKp2.privateKey));
+    expect(toHex(signingKp1.publicKey)).toBe(toHex(signingKp2.publicKey));
+    expect(toHex(signingKp1.privateKey)).toBe(toHex(signingKp2.privateKey));
   });
 });

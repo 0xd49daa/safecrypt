@@ -12,6 +12,7 @@ export const ErrorCode = {
   SENDER_MISMATCH: 'SENDER_MISMATCH',
   INVALID_SEED_SIZE: 'INVALID_SEED_SIZE',
   INVALID_BASE64: 'INVALID_BASE64',
+  INVALID_CONTEXT_SIZE: 'INVALID_CONTEXT_SIZE',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -130,4 +131,14 @@ export function invalidSeedSize(actual: number, expected = 64): EncryptionError 
  */
 export function invalidBase64(): EncryptionError {
   return new EncryptionError(ErrorCode.INVALID_BASE64, 'Invalid base64 string');
+}
+
+/**
+ * Create error for invalid context size.
+ */
+export function invalidContextSize(actual: number, expected = 8): EncryptionError {
+  return new EncryptionError(
+    ErrorCode.INVALID_CONTEXT_SIZE,
+    `Invalid context size: got ${actual} characters, expected ${expected}`
+  );
 }

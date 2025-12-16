@@ -4,7 +4,7 @@ This file provides guidance to Claude Code (claude.ai/code) when working with co
 
 ## Project Overview
 
-TypeScript encryption library (`@filemanager/encryption`) for browser-first decentralized storage. Provides symmetric encryption, asymmetric key wrapping, key derivation, and hashing using libsodium.
+General-purpose TypeScript encryption library providing symmetric encryption, asymmetric key wrapping, key derivation, and hashing using libsodium.
 
 **Runtime:** Browser (primary), Bun (secondary)
 **Foundation:** libsodium-wrappers + @scure/bip39
@@ -60,11 +60,20 @@ tests/              # Test suite
 
 ### Key Derivation Contexts (8 bytes)
 
-| Purpose | Context | Keypair Type |
-|---------|---------|--------------|
-| Crust identity | `crust___` | Ed25519 |
-| ICP identity | `icp_____` | Ed25519 |
-| Encryption | `encrypt_` | X25519 |
+Users define their own 8-character context strings for domain separation:
+
+```typescript
+// Example contexts (define your own)
+const CONTEXT_AUTH = 'auth____';    // 8 chars
+const CONTEXT_SIGN = 'signing_';    // 8 chars
+```
+
+| Keypair Function | Context | Keypair Type |
+|------------------|---------|--------------|
+| `deriveEncryptionKeyPair()` | `encrypt_` (internal) | X25519 |
+| `deriveIdentityKeyPair()` | User-defined | Ed25519 |
+
+Context must be exactly 8 ASCII characters.
 
 ## Cryptographic Primitives
 
@@ -110,6 +119,7 @@ tests/              # Test suite
 | `INVALID_STREAM_HEADER` | Malformed header |
 | `INVALID_MNEMONIC` | BIP-39 validation failed |
 | `SENDER_MISMATCH` | Sender key doesn't match |
+| `INVALID_CONTEXT_SIZE` | Context not 8 characters |
 
 ## Wire Formats
 

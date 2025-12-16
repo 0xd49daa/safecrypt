@@ -38,8 +38,6 @@ export {
   deriveSeed,
   deriveEncryptionKeyPair,
   deriveIdentityKeyPair,
-  CONTEXT_CRUST,
-  CONTEXT_ICP,
 } from './key-derivation.ts';
 
 export type { X25519KeyPair, Ed25519KeyPair } from './key-derivation.ts';

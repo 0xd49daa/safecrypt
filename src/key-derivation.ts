@@ -1,19 +1,15 @@
 import { mnemonicToSeed, validateMnemonic } from '@scure/bip39';
 import { wordlist } from '@scure/bip39/wordlists/english';
 import { getSodium } from './sodium.ts';
-import { invalidMnemonic, invalidSeedSize } from './errors.ts';
+import { invalidMnemonic, invalidSeedSize, invalidContextSize } from './errors.ts';
 import { SIZES } from './types.ts';
 import { unsafe } from './branded.ts';
 import { secureZero } from './memory.ts';
 import type { Seed, X25519PublicKey, X25519PrivateKey, Ed25519PublicKey, Ed25519PrivateKey } from './branded.ts';
 import type { KdfContext } from './types.ts';
 
-/** KDF context for Crust network identity keys */
-export const CONTEXT_CRUST: KdfContext = 'crust___';
-/** KDF context for ICP canister identity keys */
-export const CONTEXT_ICP: KdfContext = 'icp_____';
-/** KDF context for X25519 encryption keys */
-export const CONTEXT_ENCRYPT: KdfContext = 'encrypt_';
+/** Internal KDF context for X25519 encryption keys */
+const CONTEXT_ENCRYPT: KdfContext = 'encrypt_';
 
 /**
  * Derives a 64-byte seed from a BIP-39 mnemonic phrase.
@@ -50,6 +46,9 @@ export async function deriveSubkey(
 ): Promise<Uint8Array> {
   if (masterKey.length !== SIZES.SEED) {
     throw invalidSeedSize(masterKey.length, SIZES.SEED);
+  }
+  if (context.length !== SIZES.KDF_CONTEXT) {
+    throw invalidContextSize(context.length, SIZES.KDF_CONTEXT);
   }
 
   const sodium = await getSodium();
@@ -94,7 +93,7 @@ export async function deriveEncryptionKeyPair(seed: Seed, index: number): Promis
 /**
  * Derives an Ed25519 keypair for signing/identity from the master seed.
  * @param seed - 64-byte seed from deriveSeed()
- * @param context - KDF context (CONTEXT_CRUST, CONTEXT_ICP, etc.)
+ * @param context - 8-character KDF context string for domain separation
  * @param index - Key index for derivation
  * @returns Ed25519 keypair for signing operations
  */

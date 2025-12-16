@@ -110,9 +110,10 @@ export type StreamingHasher = {
 };
 
 /**
- * Key derivation context (8 bytes).
+ * Key derivation context string for domain separation.
+ * Must be exactly 8 ASCII characters.
  */
-export type KdfContext = 'crust___' | 'icp_____' | 'encrypt_';
+export type KdfContext = string;
 
 /**
  * Cryptographic size constants.
