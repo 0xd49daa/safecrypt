@@ -21,13 +21,11 @@ export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
  */
 export class EncryptionError extends Error {
   readonly code: ErrorCode;
-  readonly cause?: Error;
 
   constructor(code: ErrorCode, message: string, cause?: Error) {
-    super(message);
+    super(message, cause !== undefined ? { cause } : undefined);
     this.name = 'EncryptionError';
     this.code = code;
-    this.cause = cause;
   }
 
   static isEncryptionError(error: unknown): error is EncryptionError {

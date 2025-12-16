@@ -1,5 +1,5 @@
 import { describe, expect, test } from 'bun:test';
-import { hash, createHasher, hashBlake2b } from '../src/hash.ts';
+import { hash, createBlake2bHasher, hashBlake2b } from '../src/hash.ts';
 import { toHex } from '../src/bytes.ts';
 
 describe('hash', () => {
@@ -43,12 +43,12 @@ describe('hash', () => {
   });
 });
 
-describe('createHasher', () => {
+describe('createBlake2bHasher', () => {
   test('produces same hash as hashBlake2b', async () => {
     const data = new TextEncoder().encode('hello world');
     const singleShot = await hashBlake2b(data);
 
-    const hasher = await createHasher();
+    const hasher = await createBlake2bHasher();
     hasher.update(data);
     const streaming = await hasher.digest();
 
@@ -56,7 +56,7 @@ describe('createHasher', () => {
   });
 
   test('handles multiple updates', async () => {
-    const hasher = await createHasher();
+    const hasher = await createBlake2bHasher();
     hasher.update(new TextEncoder().encode('hello'));
     hasher.update(new TextEncoder().encode(' '));
     hasher.update(new TextEncoder().encode('world'));
@@ -67,7 +67,7 @@ describe('createHasher', () => {
   });
 
   test('handles empty updates', async () => {
-    const hasher = await createHasher();
+    const hasher = await createBlake2bHasher();
     hasher.update(new Uint8Array(0));
     hasher.update(new TextEncoder().encode('test'));
     hasher.update(new Uint8Array(0));
@@ -78,7 +78,7 @@ describe('createHasher', () => {
   });
 
   test('handles no updates', async () => {
-    const hasher = await createHasher();
+    const hasher = await createBlake2bHasher();
     const result = await hasher.digest();
 
     const expected = await hashBlake2b(new Uint8Array(0));
@@ -89,7 +89,7 @@ describe('createHasher', () => {
     const chunk1 = new Uint8Array(500_000).fill(0x41);
     const chunk2 = new Uint8Array(500_000).fill(0x42);
 
-    const hasher = await createHasher();
+    const hasher = await createBlake2bHasher();
     hasher.update(chunk1);
     hasher.update(chunk2);
     const streaming = await hasher.digest();

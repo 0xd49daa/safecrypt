@@ -5,6 +5,7 @@ export type {
   EncryptStream,
   DecryptStream,
   KdfContext,
+  StreamingHasher,
 } from './types.ts';
 
 export { SIZES } from './types.ts';
@@ -27,11 +28,11 @@ export { asContentHash } from './branded.ts';
 
 export { toBase64, fromBase64 } from './bytes.ts';
 
-export { secureZero, constantTimeEqual, randomBytes } from './memory.ts';
+export { secureZero, secureZeroAsync, constantTimeEqual, randomBytes } from './memory.ts';
 
 export { preloadSodium } from './sodium.ts';
 
-export { hash, hashBlake2b } from './hash.ts';
+export { hash, hashBlake2b, createBlake2bHasher } from './hash.ts';
 
 export {
   deriveSeed,
@@ -52,6 +53,9 @@ export {
 } from './encryption.ts';
 
 export {
+  wrapKeySeal,
+  unwrapKeySeal,
+  wrapKeySealMulti,
   wrapKeyAuthenticated,
   wrapKeyAuthenticatedMulti,
   unwrapKeyAuthenticated,

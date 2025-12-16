@@ -82,8 +82,8 @@ describe('integration: key-sharing', () => {
       const differentDeviceKeyPair = await deriveEncryptionKeyPair(differentDeviceSeed, 0);
 
       for (let i = 0; i < fileKeys.length; i++) {
-        const unwrapped = await unwrapKeySeal(sealedKeys[i], differentDeviceKeyPair);
-        expectBytesEqual(unwrapped, fileKeys[i]);
+        const unwrapped = await unwrapKeySeal(sealedKeys[i]!, differentDeviceKeyPair);
+        expectBytesEqual(unwrapped, fileKeys[i]!);
       }
     });
   });
@@ -199,17 +199,17 @@ describe('integration: key-sharing', () => {
       expect(wrappedKeys.length).toBe(3);
 
       const bobKey = await unwrapKeyAuthenticated(
-        wrappedKeys[0],
+        wrappedKeys[0]!,
         aliceKeyPair.publicKey,
         bobKeyPair
       );
       const carolKey = await unwrapKeyAuthenticated(
-        wrappedKeys[1],
+        wrappedKeys[1]!,
         aliceKeyPair.publicKey,
         carolKeyPair
       );
       const daveKey = await unwrapKeyAuthenticated(
-        wrappedKeys[2],
+        wrappedKeys[2]!,
         aliceKeyPair.publicKey,
         daveKeyPair
       );
@@ -257,9 +257,9 @@ describe('integration: key-sharing', () => {
 
       for (let i = 0; i < recipients.length; i++) {
         const recipientKey = await unwrapKeyAuthenticated(
-          wrappedKeys[i],
+          wrappedKeys[i]!,
           aliceKeyPair.publicKey,
-          recipients[i]
+          recipients[i]!
         );
 
         const decryptStream = await createDecryptStream(recipientKey, header);
@@ -300,7 +300,7 @@ describe('integration: key-sharing', () => {
       expect(wrappedKeysV2.length).toBe(2);
 
       const newRecipientKey = await unwrapKeyAuthenticated(
-        wrappedKeysV2[1],
+        wrappedKeysV2[1]!,
         aliceKeyPair.publicKey,
         newRecipientKeyPair
       );

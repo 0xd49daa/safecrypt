@@ -53,7 +53,7 @@ describe('wrapKeySeal/unwrapKeySeal', () => {
     const symmetricKey = await generateKey();
 
     const sealed = await wrapKeySeal(symmetricKey, keyPair.publicKey);
-    sealed[0] ^= 0xff;
+    sealed[0] = sealed[0]! ^ 0xff;
 
     try {
       await unwrapKeySeal(sealed, keyPair);
@@ -97,9 +97,9 @@ describe('wrapKeySealMulti', () => {
     ]);
 
     expect(sealedKeys.length).toBe(3);
-    expect(sealedKeys[0].length).toBe(80);
-    expect(sealedKeys[1].length).toBe(80);
-    expect(sealedKeys[2].length).toBe(80);
+    expect(sealedKeys[0]!.length).toBe(80);
+    expect(sealedKeys[1]!.length).toBe(80);
+    expect(sealedKeys[2]!.length).toBe(80);
   });
 
   test('each recipient can unwrap independently', async () => {
@@ -114,9 +114,9 @@ describe('wrapKeySealMulti', () => {
       keyPair3.publicKey,
     ]);
 
-    const unwrapped1 = await unwrapKeySeal(sealedKeys[0], keyPair1);
-    const unwrapped2 = await unwrapKeySeal(sealedKeys[1], keyPair2);
-    const unwrapped3 = await unwrapKeySeal(sealedKeys[2], keyPair3);
+    const unwrapped1 = await unwrapKeySeal(sealedKeys[0]!, keyPair1);
+    const unwrapped2 = await unwrapKeySeal(sealedKeys[1]!, keyPair2);
+    const unwrapped3 = await unwrapKeySeal(sealedKeys[2]!, keyPair3);
 
     expect(bytesEqual(unwrapped1, symmetricKey)).toBe(true);
     expect(bytesEqual(unwrapped2, symmetricKey)).toBe(true);
@@ -134,7 +134,7 @@ describe('wrapKeySealMulti', () => {
     ]);
 
     try {
-      await unwrapKeySeal(sealedKeys[1], keyPair1);
+      await unwrapKeySeal(sealedKeys[1]!, keyPair1);
       expect(true).toBe(false);
     } catch (error) {
       expect(error).toBeInstanceOf(EncryptionError);
@@ -155,7 +155,7 @@ describe('wrapKeySealMulti', () => {
     const sealedKeys = await wrapKeySealMulti(symmetricKey, [keyPair.publicKey]);
 
     expect(sealedKeys.length).toBe(1);
-    const unwrapped = await unwrapKeySeal(sealedKeys[0], keyPair);
+    const unwrapped = await unwrapKeySeal(sealedKeys[0]!, keyPair);
     expect(bytesEqual(unwrapped, symmetricKey)).toBe(true);
   });
 });
@@ -249,7 +249,7 @@ describe('wrapKeyAuthenticated/unwrapKeyAuthenticated', () => {
     );
 
     const tamperedCiphertext = new Uint8Array(wrapped.ciphertext);
-    tamperedCiphertext[0] ^= 0xff;
+    tamperedCiphertext[0] = tamperedCiphertext[0]! ^ 0xff;
 
     try {
       await unwrapKeyAuthenticated(
@@ -276,7 +276,7 @@ describe('wrapKeyAuthenticated/unwrapKeyAuthenticated', () => {
     );
 
     const tamperedNonce = new Uint8Array(wrapped.nonce);
-    tamperedNonce[0] ^= 0xff;
+    tamperedNonce[0] = tamperedNonce[0]! ^ 0xff;
 
     try {
       await unwrapKeyAuthenticated(
@@ -342,9 +342,9 @@ describe('wrapKeyAuthenticatedMulti', () => {
     );
 
     expect(wrappedKeys.length).toBe(3);
-    expect(bytesEqual(wrappedKeys[0].senderPublicKey, senderKeyPair.publicKey)).toBe(true);
-    expect(bytesEqual(wrappedKeys[1].senderPublicKey, senderKeyPair.publicKey)).toBe(true);
-    expect(bytesEqual(wrappedKeys[2].senderPublicKey, senderKeyPair.publicKey)).toBe(true);
+    expect(bytesEqual(wrappedKeys[0]!.senderPublicKey, senderKeyPair.publicKey)).toBe(true);
+    expect(bytesEqual(wrappedKeys[1]!.senderPublicKey, senderKeyPair.publicKey)).toBe(true);
+    expect(bytesEqual(wrappedKeys[2]!.senderPublicKey, senderKeyPair.publicKey)).toBe(true);
   });
 
   test('each recipient can unwrap and verify sender', async () => {
@@ -360,12 +360,12 @@ describe('wrapKeyAuthenticatedMulti', () => {
     );
 
     const unwrapped1 = await unwrapKeyAuthenticated(
-      wrappedKeys[0],
+      wrappedKeys[0]!,
       senderKeyPair.publicKey,
       recipientKeyPair1
     );
     const unwrapped2 = await unwrapKeyAuthenticated(
-      wrappedKeys[1],
+      wrappedKeys[1]!,
       senderKeyPair.publicKey,
       recipientKeyPair2
     );
@@ -386,7 +386,7 @@ describe('wrapKeyAuthenticatedMulti', () => {
       senderKeyPair
     );
 
-    expect(toHex(wrappedKeys[0].nonce)).not.toBe(toHex(wrappedKeys[1].nonce));
+    expect(toHex(wrappedKeys[0]!.nonce)).not.toBe(toHex(wrappedKeys[1]!.nonce));
   });
 
   test('recipient A cannot unwrap recipient B wrapped key', async () => {
@@ -402,7 +402,7 @@ describe('wrapKeyAuthenticatedMulti', () => {
     );
 
     try {
-      await unwrapKeyAuthenticated(wrappedKeys[1], senderKeyPair.publicKey, recipientKeyPair1);
+      await unwrapKeyAuthenticated(wrappedKeys[1]!, senderKeyPair.publicKey, recipientKeyPair1);
       expect(true).toBe(false);
     } catch (error) {
       expect(error).toBeInstanceOf(EncryptionError);
@@ -432,7 +432,7 @@ describe('wrapKeyAuthenticatedMulti', () => {
 
     expect(wrappedKeys.length).toBe(1);
     const unwrapped = await unwrapKeyAuthenticated(
-      wrappedKeys[0],
+      wrappedKeys[0]!,
       senderKeyPair.publicKey,
       recipientKeyPair
     );

@@ -219,7 +219,8 @@ describe('integration: file-encryption', () => {
       const plaintext = createTestData(SIZES.SMALL);
 
       const { nonce, ciphertext } = await encrypt(plaintext, key);
-      ciphertext[Math.floor(ciphertext.length / 2)] ^= 0xff;
+      const idx = Math.floor(ciphertext.length / 2);
+      ciphertext[idx] = ciphertext[idx]! ^ 0xff;
 
       try {
         await decrypt(ciphertext, nonce, key);
@@ -249,9 +250,9 @@ describe('integration: file-encryption', () => {
       encryptStream.dispose();
 
       const decryptStream = await createDecryptStream(key, header);
-      decryptStream.pull(encryptedChunks[0]);
+      decryptStream.pull(encryptedChunks[0]!);
 
-      const truncatedChunk = encryptedChunks[1].subarray(0, 10);
+      const truncatedChunk = encryptedChunks[1]!.subarray(0, 10);
 
       try {
         decryptStream.pull(truncatedChunk);
@@ -284,7 +285,7 @@ describe('integration: file-encryption', () => {
       const plaintext = createTestData(SIZES.SMALL);
 
       const { nonce, ciphertext } = await encrypt(plaintext, key);
-      ciphertext[0] ^= 0xff;
+      ciphertext[0] = ciphertext[0]! ^ 0xff;
 
       try {
         await decrypt(ciphertext, nonce, key);

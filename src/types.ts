@@ -1,16 +1,18 @@
+import type { Nonce, Ciphertext, SecretstreamHeader, X25519PublicKey, X25519PrivateKey, Ed25519PublicKey, Ed25519PrivateKey } from './branded.ts';
+
 /**
  * Result of single-shot encryption.
  */
 export type EncryptedData = {
-  readonly nonce: Uint8Array;
-  readonly ciphertext: Uint8Array;
+  readonly nonce: Nonce;
+  readonly ciphertext: Ciphertext;
 };
 
 /**
  * Header for crypto_secretstream.
  */
 export type StreamHeader = {
-  readonly header: Uint8Array;
+  readonly header: SecretstreamHeader;
 };
 
 /**
@@ -25,16 +27,16 @@ export type KeyPair<TPub extends Uint8Array, TPriv extends Uint8Array> = {
  * X25519 keypair for encryption/key-wrapping operations.
  */
 export type X25519KeyPair = {
-  readonly publicKey: Uint8Array;
-  readonly privateKey: Uint8Array;
+  readonly publicKey: X25519PublicKey;
+  readonly privateKey: X25519PrivateKey;
 };
 
 /**
  * Ed25519 keypair for signing/identity operations.
  */
 export type Ed25519KeyPair = {
-  readonly publicKey: Uint8Array;
-  readonly privateKey: Uint8Array;
+  readonly publicKey: Ed25519PublicKey;
+  readonly privateKey: Ed25519PrivateKey;
 };
 
 /**
@@ -48,9 +50,9 @@ export type SealedBox = {
  * Authenticated wrapped key result.
  */
 export type AuthenticatedWrappedKey = {
-  readonly nonce: Uint8Array;
-  readonly ciphertext: Uint8Array;
-  readonly senderPublicKey: Uint8Array;
+  readonly nonce: Nonce;
+  readonly ciphertext: Ciphertext;
+  readonly senderPublicKey: X25519PublicKey;
 };
 
 /**
@@ -63,28 +65,39 @@ export type MultiRecipientWrappedKey<T extends SealedBox | AuthenticatedWrappedK
 /**
  * Streaming encryption state.
  *
- * @security Call dispose() when done to release resources.
- * Internal libsodium state cannot be securely zeroized from JS;
- * callers should zeroize the SymmetricKey after stream disposal.
+ * @security Call dispose() when done to release resources and zero internal buffers.
+ * The header getter returns a defensive copy, safe to use after dispose().
+ *
+ * Note: The secretstream state lives in WASM memory and cannot be directly
+ * zeroed from JS. Callers should zeroize the SymmetricKey after disposal.
  */
 export type EncryptStream = {
-  readonly header: Uint8Array;
+  /** Returns a copy of the header (safe to use after dispose) */
+  readonly header: SecretstreamHeader;
   push(chunk: Uint8Array, isFinal: boolean): Uint8Array;
+  /** Zeros internal header buffer */
   dispose(): void;
 };
 
 /**
  * Streaming decryption state.
  *
- * @security Call finalize() after processing all chunks to verify
- * TAG_FINAL was received (prevents truncation attacks). Call dispose()
- * when done to release resources. Internal libsodium state cannot be
- * securely zeroized from JS; callers should zeroize the SymmetricKey
- * after stream disposal.
+ * @security Truncation detection is enforced automatically. dispose() throws
+ * STREAM_TRUNCATED if TAG_FINAL was not received, ensuring consumers cannot
+ * accidentally accept truncated streams.
+ *
+ * dispose() will NOT throw if:
+ * - finalize() was already called (explicit truncation check performed)
+ * - pull() threw an error (stream already known to be invalid)
+ *
+ * Note: The secretstream state lives in WASM memory and cannot be directly
+ * zeroed from JS. Callers should zeroize the SymmetricKey after disposal.
  */
 export type DecryptStream = {
   pull(chunk: Uint8Array): { plaintext: Uint8Array; isFinal: boolean };
+  /** @throws {EncryptionError} STREAM_TRUNCATED if TAG_FINAL not received */
   finalize(): void;
+  /** @throws {EncryptionError} STREAM_TRUNCATED if TAG_FINAL not received and finalize() not called */
   dispose(): void;
 };
 

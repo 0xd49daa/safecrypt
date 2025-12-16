@@ -1,5 +1,5 @@
 import { getSodium } from './sodium.ts';
-import { unsafe } from './branded.ts';
+import { unsafe, asSymmetricKey, asX25519PublicKey, asX25519PrivateKey } from './branded.ts';
 import { decryptionFailed, senderMismatch } from './errors.ts';
 import { constantTimeEqual } from './memory.ts';
 import type { SymmetricKey, X25519PublicKey } from './branded.ts';
@@ -11,10 +11,17 @@ export type AuthenticatedWrappedKey = {
   readonly senderPublicKey: X25519PublicKey;
 };
 
+function validateKeyPair(keyPair: X25519KeyPair): void {
+  asX25519PublicKey(keyPair.publicKey);
+  asX25519PrivateKey(keyPair.privateKey);
+}
+
 export async function wrapKeySeal(
   key: SymmetricKey,
   recipientPublicKey: X25519PublicKey
 ): Promise<Uint8Array> {
+  asSymmetricKey(key); // Runtime validation
+  asX25519PublicKey(recipientPublicKey); // Runtime validation
   const sodium = await getSodium();
   return sodium.crypto_box_seal(key, recipientPublicKey);
 }
@@ -23,6 +30,7 @@ export async function unwrapKeySeal(
   sealedKey: Uint8Array,
   recipientKeyPair: X25519KeyPair
 ): Promise<SymmetricKey> {
+  validateKeyPair(recipientKeyPair); // Runtime validation
   const sodium = await getSodium();
 
   try {
@@ -41,6 +49,8 @@ export async function wrapKeySealMulti(
   key: SymmetricKey,
   recipientPublicKeys: readonly X25519PublicKey[]
 ): Promise<readonly Uint8Array[]> {
+  asSymmetricKey(key); // Runtime validation
+  recipientPublicKeys.forEach((pk) => asX25519PublicKey(pk)); // Runtime validation
   const sodium = await getSodium();
   return recipientPublicKeys.map((pubKey) => sodium.crypto_box_seal(key, pubKey));
 }
@@ -50,6 +60,9 @@ export async function wrapKeyAuthenticated(
   recipientPublicKey: X25519PublicKey,
   senderKeyPair: X25519KeyPair
 ): Promise<AuthenticatedWrappedKey> {
+  asSymmetricKey(key); // Runtime validation
+  asX25519PublicKey(recipientPublicKey); // Runtime validation
+  validateKeyPair(senderKeyPair); // Runtime validation
   const sodium = await getSodium();
   const nonce = sodium.randombytes_buf(sodium.crypto_box_NONCEBYTES);
 
@@ -72,6 +85,8 @@ export async function unwrapKeyAuthenticated(
   expectedSenderPublicKey: X25519PublicKey,
   recipientKeyPair: X25519KeyPair
 ): Promise<SymmetricKey> {
+  asX25519PublicKey(expectedSenderPublicKey); // Runtime validation
+  validateKeyPair(recipientKeyPair); // Runtime validation
   const isMatch = await constantTimeEqual(wrapped.senderPublicKey, expectedSenderPublicKey);
   if (!isMatch) {
     throw senderMismatch();
@@ -97,6 +112,9 @@ export async function wrapKeyAuthenticatedMulti(
   recipientPublicKeys: readonly X25519PublicKey[],
   senderKeyPair: X25519KeyPair
 ): Promise<readonly AuthenticatedWrappedKey[]> {
+  asSymmetricKey(key); // Runtime validation
+  recipientPublicKeys.forEach((pk) => asX25519PublicKey(pk)); // Runtime validation
+  validateKeyPair(senderKeyPair); // Runtime validation
   const sodium = await getSodium();
 
   return recipientPublicKeys.map((recipientPubKey) => {

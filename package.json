@@ -1,5 +1,5 @@
 {
-  "name": "@filemanager/encryptionv2",
+  "name": "@0xd49daa/encryption",
   "version": "0.1.0",
   "type": "module",
   "module": "src/index.ts",
@@ -19,8 +19,6 @@
     "@scure/bip39": "1.4.0"
   },
   "devDependencies": {
-    "@types/libsodium-wrappers": "0.7.14",
-    "@types/bun": "latest",
-    "typescript": "^5.0.0"
+    "@types/libsodium-wrappers": "0.7.14"
   }
 }

@@ -27,12 +27,12 @@ describe('security: stream-integrity', () => {
       );
       encryptStream.dispose();
 
-      const swapped = [encryptedChunks[1], encryptedChunks[0], encryptedChunks[2]];
+      const swapped = [encryptedChunks[1]!, encryptedChunks[0]!, encryptedChunks[2]!];
 
       const decryptStream = await createDecryptStream(key, header);
 
       try {
-        decryptStream.pull(swapped[0]);
+        decryptStream.pull(swapped[0]!);
         expect(true).toBe(false);
       } catch (error) {
         expect(error).toBeInstanceOf(EncryptionError);
@@ -61,7 +61,7 @@ describe('security: stream-integrity', () => {
       const decryptStream = await createDecryptStream(key, header);
 
       try {
-        decryptStream.pull(reversed[0]);
+        decryptStream.pull(reversed[0]!);
         expect(true).toBe(false);
       } catch (error) {
         expect(error).toBeInstanceOf(EncryptionError);
@@ -121,7 +121,7 @@ describe('security: stream-integrity', () => {
   });
 
   describe('truncation', () => {
-    test('detects missing final chunk', async () => {
+    test('detects missing final chunk via dispose()', async () => {
       const key = await generateKey();
       const chunks = [createTestData(1000), createTestData(1000), createTestData(1000)];
 
@@ -134,13 +134,20 @@ describe('security: stream-integrity', () => {
 
       const decryptStream = await createDecryptStream(key, header);
 
-      const { isFinal: isFinal0 } = decryptStream.pull(encryptedChunks[0]);
+      const { isFinal: isFinal0 } = decryptStream.pull(encryptedChunks[0]!);
       expect(isFinal0).toBe(false);
 
-      const { isFinal: isFinal1 } = decryptStream.pull(encryptedChunks[1]);
+      const { isFinal: isFinal1 } = decryptStream.pull(encryptedChunks[1]!);
       expect(isFinal1).toBe(false);
 
-      decryptStream.dispose();
+      // dispose() now enforces truncation detection - throws if TAG_FINAL not received
+      try {
+        decryptStream.dispose();
+        expect(true).toBe(false);
+      } catch (error) {
+        expect(error).toBeInstanceOf(EncryptionError);
+        expect((error as EncryptionError).code).toBe(ErrorCode.STREAM_TRUNCATED);
+      }
     });
 
     test('detects stream cut short mid-chunk', async () => {
@@ -278,7 +285,8 @@ describe('security: stream-integrity', () => {
       encryptStream.dispose();
 
       const modified = new Uint8Array(encryptedChunk);
-      modified[Math.floor(modified.length / 2)] ^= 0x01;
+      const midIdx = Math.floor(modified.length / 2);
+      modified[midIdx] = modified[midIdx]! ^ 0x01;
 
       const decryptStream = await createDecryptStream(key, header);
 
@@ -302,7 +310,8 @@ describe('security: stream-integrity', () => {
       encryptStream.dispose();
 
       const modified = new Uint8Array(encryptedChunk);
-      modified[modified.length - 1] ^= 0x01;
+      const lastIdx = modified.length - 1;
+      modified[lastIdx] = modified[lastIdx]! ^ 0x01;
 
       const decryptStream = await createDecryptStream(key, header);
 
@@ -326,7 +335,7 @@ describe('security: stream-integrity', () => {
       encryptStream.dispose();
 
       const modifiedHeader = new Uint8Array(originalHeader);
-      modifiedHeader[12] ^= 0x01;
+      modifiedHeader[12] = modifiedHeader[12]! ^ 0x01;
 
       const decryptStream = await createDecryptStream(
         key,

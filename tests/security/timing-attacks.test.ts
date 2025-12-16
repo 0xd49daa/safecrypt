@@ -78,7 +78,8 @@ describe('security: timing-attacks', () => {
 
       expect(await constantTimeEqual(arr1, arr2)).toBe(true);
 
-      arr2[size - 1] ^= 1;
+      const lastIdx = size - 1;
+      arr2[lastIdx] = arr2[lastIdx]! ^ 1;
       expect(await constantTimeEqual(arr1, arr2)).toBe(false);
     });
   });
@@ -167,7 +168,7 @@ describe('security: timing-attacks', () => {
 
       expect(await constantTimeEqual(key1, key2)).toBe(true);
 
-      key2[31] ^= 1;
+      key2[31] = key2[31]! ^ 1;
       expect(await constantTimeEqual(key1, key2)).toBe(false);
     });
   });

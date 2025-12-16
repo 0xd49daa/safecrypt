@@ -1,4 +1,4 @@
-import { invalidBase64 } from './errors';
+import { invalidBase64 } from './errors.ts';
 
 const HEX_CHARS = '0123456789abcdef';
 

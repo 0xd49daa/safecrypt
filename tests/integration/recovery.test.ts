@@ -158,10 +158,10 @@ describe('integration: recovery', () => {
       const recoveryKeyPair = await deriveEncryptionKeyPair(recoverySeed, 0);
 
       for (let i = 0; i < encryptedFiles.length; i++) {
-        const encFile = encryptedFiles[i];
+        const encFile = encryptedFiles[i]!;
         const recoveredKey = await unwrapKeySeal(encFile.sealedKey, recoveryKeyPair);
         const recoveredPlaintext = await decrypt(encFile.ciphertext, encFile.nonce, recoveredKey);
-        expect(new TextDecoder().decode(recoveredPlaintext)).toBe(files[i].content);
+        expect(new TextDecoder().decode(recoveredPlaintext)).toBe(files[i]!.content);
       }
     });
   });
@@ -184,8 +184,8 @@ describe('integration: recovery', () => {
       ]);
 
       for (let i = 0; i < keyPairs.length; i++) {
-        expectBytesEqual(keyPairs[i].publicKey, keyPairs2[i].publicKey);
-        expectBytesEqual(keyPairs[i].privateKey, keyPairs2[i].privateKey);
+        expectBytesEqual(keyPairs[i]!.publicKey, keyPairs2[i]!.publicKey);
+        expectBytesEqual(keyPairs[i]!.privateKey, keyPairs2[i]!.privateKey);
       }
     });
 
@@ -209,17 +209,20 @@ describe('integration: recovery', () => {
   });
 
   describe('edge cases', () => {
-    test('handles normalized vs non-normalized mnemonics', async () => {
+    test('rejects non-canonical mnemonics for better typo detection', async () => {
       const normalMnemonic = TEST_MNEMONIC_12;
       const uppercaseMnemonic = TEST_MNEMONIC_12.toUpperCase();
       const extraSpacesMnemonic = TEST_MNEMONIC_12.split(' ').join('   ');
 
-      const seed1 = await deriveSeed(normalMnemonic);
-      const seed2 = await deriveSeed(uppercaseMnemonic);
-      const seed3 = await deriveSeed(extraSpacesMnemonic);
+      // Normal mnemonic should work
+      const seed = await deriveSeed(normalMnemonic);
+      expect(seed.length).toBe(64);
 
-      expectBytesEqual(seed1, seed2);
-      expectBytesEqual(seed2, seed3);
+      // Uppercase should be rejected
+      await expect(deriveSeed(uppercaseMnemonic)).rejects.toThrow('mnemonic must be lowercase');
+
+      // Extra spaces should be rejected
+      await expect(deriveSeed(extraSpacesMnemonic)).rejects.toThrow('mnemonic must have single spaces between words');
     });
 
     test('rejects invalid mnemonics', async () => {

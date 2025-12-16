@@ -12,6 +12,17 @@ import {
   asContentHash,
   asSeed,
   unsafe,
+  type SymmetricKey,
+  type Nonce,
+  type Ciphertext,
+  type FileId,
+  type SecretstreamHeader,
+  type X25519PublicKey,
+  type X25519PrivateKey,
+  type Ed25519PublicKey,
+  type Ed25519PrivateKey,
+  type ContentHash,
+  type Seed,
 } from '../src/branded.ts';
 import { EncryptionError } from '../src/errors.ts';
 import { SIZES } from '../src/types.ts';
@@ -20,7 +31,7 @@ describe('asSymmetricKey', () => {
   test('accepts 32-byte array', () => {
     const bytes = new Uint8Array(32);
     const key = asSymmetricKey(bytes);
-    expect(key).toBe(bytes);
+    expect(key).toBe(bytes as SymmetricKey);
     expect(key.length).toBe(32);
   });
 
@@ -34,7 +45,7 @@ describe('asNonce', () => {
   test('accepts 24-byte array', () => {
     const bytes = new Uint8Array(24);
     const nonce = asNonce(bytes);
-    expect(nonce).toBe(bytes);
+    expect(nonce).toBe(bytes as Nonce);
   });
 
   test('throws for wrong size', () => {
@@ -46,13 +57,13 @@ describe('asCiphertext', () => {
   test('accepts any size array', () => {
     const bytes = new Uint8Array(100);
     const ct = asCiphertext(bytes);
-    expect(ct).toBe(bytes);
+    expect(ct).toBe(bytes as Ciphertext);
   });
 
   test('accepts empty array', () => {
     const bytes = new Uint8Array(0);
     const ct = asCiphertext(bytes);
-    expect(ct).toBe(bytes);
+    expect(ct).toBe(bytes as Ciphertext);
   });
 });
 
@@ -60,7 +71,7 @@ describe('asFileId', () => {
   test('accepts 32-byte array', () => {
     const bytes = new Uint8Array(32);
     const fileId = asFileId(bytes);
-    expect(fileId).toBe(bytes);
+    expect(fileId).toBe(bytes as FileId);
   });
 
   test('throws for wrong size', () => {
@@ -72,7 +83,7 @@ describe('asSecretstreamHeader', () => {
   test('accepts 24-byte array', () => {
     const bytes = new Uint8Array(24);
     const header = asSecretstreamHeader(bytes);
-    expect(header).toBe(bytes);
+    expect(header).toBe(bytes as SecretstreamHeader);
   });
 
   test('throws for wrong size', () => {
@@ -84,7 +95,7 @@ describe('asX25519PublicKey', () => {
   test('accepts 32-byte array', () => {
     const bytes = new Uint8Array(32);
     const key = asX25519PublicKey(bytes);
-    expect(key).toBe(bytes);
+    expect(key).toBe(bytes as X25519PublicKey);
   });
 
   test('throws for wrong size', () => {
@@ -96,7 +107,7 @@ describe('asX25519PrivateKey', () => {
   test('accepts 32-byte array', () => {
     const bytes = new Uint8Array(32);
     const key = asX25519PrivateKey(bytes);
-    expect(key).toBe(bytes);
+    expect(key).toBe(bytes as X25519PrivateKey);
   });
 
   test('throws for wrong size', () => {
@@ -108,7 +119,7 @@ describe('asEd25519PublicKey', () => {
   test('accepts 32-byte array', () => {
     const bytes = new Uint8Array(32);
     const key = asEd25519PublicKey(bytes);
-    expect(key).toBe(bytes);
+    expect(key).toBe(bytes as Ed25519PublicKey);
   });
 
   test('throws for wrong size', () => {
@@ -120,7 +131,7 @@ describe('asEd25519PrivateKey', () => {
   test('accepts 64-byte array', () => {
     const bytes = new Uint8Array(64);
     const key = asEd25519PrivateKey(bytes);
-    expect(key).toBe(bytes);
+    expect(key).toBe(bytes as Ed25519PrivateKey);
   });
 
   test('throws for wrong size', () => {
@@ -132,7 +143,7 @@ describe('asContentHash', () => {
   test('accepts 32-byte array', () => {
     const bytes = new Uint8Array(32);
     const hash = asContentHash(bytes);
-    expect(hash).toBe(bytes);
+    expect(hash).toBe(bytes as ContentHash);
   });
 
   test('throws for wrong size', () => {
@@ -144,7 +155,7 @@ describe('asSeed', () => {
   test('accepts 64-byte array', () => {
     const bytes = new Uint8Array(64);
     const seed = asSeed(bytes);
-    expect(seed).toBe(bytes);
+    expect(seed).toBe(bytes as Seed);
   });
 
   test('throws for wrong size', () => {

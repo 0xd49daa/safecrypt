@@ -20,6 +20,14 @@ export async function getSodium(): Promise<typeof libsodium> {
   return initPromise;
 }
 
+/**
+ * Get the sodium instance synchronously if already initialized.
+ * Returns null if sodium hasn't been initialized yet.
+ */
+export function getSodiumSync(): typeof libsodium | null {
+  return sodiumInstance;
+}
+
 export async function preloadSodium(): Promise<void> {
   await getSodium();
 }

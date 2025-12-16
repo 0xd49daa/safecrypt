@@ -144,7 +144,7 @@ describe('encrypt/decrypt', () => {
     const plaintext = new TextEncoder().encode('secret');
 
     const { nonce, ciphertext } = await encrypt(plaintext, key);
-    ciphertext[0] ^= 0xff;
+    ciphertext[0] = ciphertext[0]! ^ 0xff;
 
     try {
       await decrypt(ciphertext, nonce, key);
@@ -262,7 +262,7 @@ describe('createEncryptStream/createDecryptStream', () => {
     encryptStream.dispose();
 
     const tamperedChunk = new Uint8Array(encryptedChunk);
-    tamperedChunk[0] ^= 0xff;
+    tamperedChunk[0] = tamperedChunk[0]! ^ 0xff;
 
     const decryptStream = await createDecryptStream(key, header);
     try {
@@ -366,7 +366,7 @@ describe('createEncryptStream/createDecryptStream', () => {
     let sawFinal = false;
 
     for (let i = 0; i < encryptedChunks.length; i++) {
-      const { plaintext, isFinal } = decryptStream.pull(encryptedChunks[i]);
+      const { plaintext, isFinal } = decryptStream.pull(encryptedChunks[i]!);
       expect(plaintext.length).toBe(chunkSize);
       expect(plaintext.every((b) => b === i % 256)).toBe(true);
       decryptedCount++;
@@ -393,12 +393,12 @@ describe('createEncryptStream/createDecryptStream', () => {
     );
     encryptStream.dispose();
 
-    const reordered = [encryptedChunks[1], encryptedChunks[0], encryptedChunks[2]];
+    const reordered = [encryptedChunks[1]!, encryptedChunks[0]!, encryptedChunks[2]!];
 
     let errorThrown = false;
     try {
       const decryptStream = await createDecryptStream(key, header);
-      decryptStream.pull(reordered[0]);
+      decryptStream.pull(reordered[0]!);
       decryptStream.dispose();
     } catch (error) {
       errorThrown = true;

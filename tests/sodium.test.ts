@@ -18,7 +18,7 @@ describe('getSodium', () => {
     const promises = Array.from({ length: 10 }, () => getSodium());
     const instances = await Promise.all(promises);
 
-    const first = instances[0];
+    const first = instances[0]!;
     for (const instance of instances) {
       expect(instance).toBe(first);
     }

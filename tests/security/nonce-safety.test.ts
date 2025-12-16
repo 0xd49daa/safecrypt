@@ -197,8 +197,8 @@ describe('security: nonce-safety', () => {
       }
 
       for (let i = 1; i < nonces.length; i++) {
-        const prev = nonces[i - 1];
-        const curr = nonces[i];
+        const prev = nonces[i - 1]!;
+        const curr = nonces[i]!;
 
         let matchingBytes = 0;
         for (let j = 0; j < 24; j++) {
@@ -216,7 +216,7 @@ describe('security: nonce-safety', () => {
 
       for (let i = 0; i < 256; i++) {
         const { nonce } = await encrypt(plaintext, key);
-        firstBytes.add(nonce[0]);
+        firstBytes.add(nonce[0]!);
       }
 
       expect(firstBytes.size).toBeGreaterThan(100);

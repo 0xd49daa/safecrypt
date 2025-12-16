@@ -49,16 +49,22 @@ describe('deriveSeed', () => {
     await expect(deriveSeed('abandon abandon abandon')).rejects.toThrow();
   });
 
-  test('normalizes whitespace', async () => {
-    const seedNormal = await deriveSeed(TEST_MNEMONIC);
-    const seedExtraSpaces = await deriveSeed('  abandon  abandon   abandon abandon abandon abandon abandon abandon abandon abandon abandon about  ');
-    expect(toHex(seedNormal)).toBe(toHex(seedExtraSpaces));
+  test('rejects multiple spaces between words', async () => {
+    await expect(
+      deriveSeed('abandon  abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about')
+    ).rejects.toThrow('mnemonic must have single spaces between words');
   });
 
-  test('normalizes to lowercase', async () => {
-    const seedLower = await deriveSeed(TEST_MNEMONIC);
-    const seedMixed = await deriveSeed('Abandon ABANDON abandon Abandon abandon abandon abandon abandon abandon abandon abandon About');
-    expect(toHex(seedLower)).toBe(toHex(seedMixed));
+  test('rejects uppercase letters', async () => {
+    await expect(
+      deriveSeed('Abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon abandon about')
+    ).rejects.toThrow('mnemonic must be lowercase');
+  });
+
+  test('trims leading and trailing whitespace', async () => {
+    const seedNormal = await deriveSeed(TEST_MNEMONIC);
+    const seedTrimmed = await deriveSeed('  ' + TEST_MNEMONIC + '  ');
+    expect(toHex(seedNormal)).toBe(toHex(seedTrimmed));
   });
 
   test('works with 24-word mnemonic', async () => {

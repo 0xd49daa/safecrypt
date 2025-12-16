@@ -13,13 +13,23 @@ export const CONTEXT_ICP: KdfContext = 'icp_____';
 export const CONTEXT_ENCRYPT: KdfContext = 'encrypt_';
 
 export async function deriveSeed(mnemonic: string, passphrase: string = ''): Promise<Seed> {
-  const normalized = mnemonic.trim().toLowerCase().replace(/\s+/g, ' ');
+  const trimmed = mnemonic.trim();
 
-  if (!validateMnemonic(normalized, wordlist)) {
+  // Reject non-canonical input (uppercase, multiple spaces) for better typo detection
+  // BIP-39 mnemonics should be lowercase with single spaces between words
+  if (trimmed !== trimmed.toLowerCase()) {
+    throw invalidMnemonic('mnemonic must be lowercase');
+  }
+  if (/\s{2,}/.test(trimmed)) {
+    throw invalidMnemonic('mnemonic must have single spaces between words');
+  }
+
+  if (!validateMnemonic(trimmed, wordlist)) {
     throw invalidMnemonic('invalid BIP-39 mnemonic');
   }
 
-  const seed = await mnemonicToSeed(normalized, passphrase);
+  // @scure/bip39 handles NFKD normalization internally
+  const seed = await mnemonicToSeed(trimmed, passphrase);
   return unsafe.asSeed(seed);
 }
 
