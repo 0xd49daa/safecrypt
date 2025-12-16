@@ -10,6 +10,10 @@ async function initializeSodium(): Promise<typeof libsodium> {
   return sodiumInstance;
 }
 
+/**
+ * Gets the initialized libsodium instance (lazy initialization).
+ * @returns Initialized libsodium instance
+ */
 export async function getSodium(): Promise<typeof libsodium> {
   if (sodiumInstance) {
     return sodiumInstance;
@@ -28,6 +32,9 @@ export function getSodiumSync(): typeof libsodium | null {
   return sodiumInstance;
 }
 
+/**
+ * Preloads libsodium WASM module. Call during app startup to avoid latency on first crypto operation.
+ */
 export async function preloadSodium(): Promise<void> {
   await getSodium();
 }

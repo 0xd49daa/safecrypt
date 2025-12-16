@@ -115,6 +115,9 @@ export function senderMismatch(): EncryptionError {
   );
 }
 
+/**
+ * Create error for invalid seed size.
+ */
 export function invalidSeedSize(actual: number, expected = 64): EncryptionError {
   return new EncryptionError(
     ErrorCode.INVALID_SEED_SIZE,
@@ -122,6 +125,9 @@ export function invalidSeedSize(actual: number, expected = 64): EncryptionError 
   );
 }
 
+/**
+ * Create error for invalid base64 input.
+ */
 export function invalidBase64(): EncryptionError {
   return new EncryptionError(ErrorCode.INVALID_BASE64, 'Invalid base64 string');
 }

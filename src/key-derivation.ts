@@ -8,10 +8,20 @@ import { secureZero } from './memory.ts';
 import type { Seed, X25519PublicKey, X25519PrivateKey, Ed25519PublicKey, Ed25519PrivateKey } from './branded.ts';
 import type { KdfContext } from './types.ts';
 
+/** KDF context for Crust network identity keys */
 export const CONTEXT_CRUST: KdfContext = 'crust___';
+/** KDF context for ICP canister identity keys */
 export const CONTEXT_ICP: KdfContext = 'icp_____';
+/** KDF context for X25519 encryption keys */
 export const CONTEXT_ENCRYPT: KdfContext = 'encrypt_';
 
+/**
+ * Derives a 64-byte seed from a BIP-39 mnemonic phrase.
+ * @param mnemonic - 12 or 24 word BIP-39 mnemonic (lowercase, single spaces)
+ * @param passphrase - Optional BIP-39 passphrase for additional security
+ * @returns 64-byte seed for key derivation
+ * @throws {EncryptionError} INVALID_MNEMONIC if mnemonic is invalid
+ */
 export async function deriveSeed(mnemonic: string, passphrase: string = ''): Promise<Seed> {
   const trimmed = mnemonic.trim();
 
@@ -51,16 +61,24 @@ export async function deriveSubkey(
   return subkey;
 }
 
+/** X25519 keypair for encryption and key exchange */
 export type X25519KeyPair = {
   readonly publicKey: X25519PublicKey;
   readonly privateKey: X25519PrivateKey;
 };
 
+/** Ed25519 keypair for signing and identity */
 export type Ed25519KeyPair = {
   readonly publicKey: Ed25519PublicKey;
   readonly privateKey: Ed25519PrivateKey;
 };
 
+/**
+ * Derives an X25519 keypair for encryption from the master seed.
+ * @param seed - 64-byte seed from deriveSeed()
+ * @param index - Key index for derivation (use different indices for different keys)
+ * @returns X25519 keypair for use with key wrapping functions
+ */
 export async function deriveEncryptionKeyPair(seed: Seed, index: number): Promise<X25519KeyPair> {
   const subkey = await deriveSubkey(seed, index, CONTEXT_ENCRYPT);
   const sodium = await getSodium();
@@ -73,6 +91,13 @@ export async function deriveEncryptionKeyPair(seed: Seed, index: number): Promis
   };
 }
 
+/**
+ * Derives an Ed25519 keypair for signing/identity from the master seed.
+ * @param seed - 64-byte seed from deriveSeed()
+ * @param context - KDF context (CONTEXT_CRUST, CONTEXT_ICP, etc.)
+ * @param index - Key index for derivation
+ * @returns Ed25519 keypair for signing operations
+ */
 export async function deriveIdentityKeyPair(
   seed: Seed,
   context: KdfContext,

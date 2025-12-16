@@ -5,12 +5,27 @@ import { secureZero } from './memory.ts';
 import type { SymmetricKey, Nonce, FileId, SecretstreamHeader } from './branded.ts';
 import type { EncryptedData, EncryptStream, DecryptStream } from './types.ts';
 
+/**
+ * Generates a cryptographically secure random 32-byte symmetric key.
+ * @returns A new symmetric key for use with encrypt/decrypt
+ * @example
+ * const key = await generateKey();
+ */
 export async function generateKey(): Promise<SymmetricKey> {
   const sodium = await getSodium();
   const key = sodium.randombytes_buf(32);
   return unsafe.asSymmetricKey(key);
 }
 
+/**
+ * Encrypts data using XChaCha20-Poly1305 (AEAD).
+ * @param plaintext - Data to encrypt
+ * @param key - 32-byte symmetric key from generateKey()
+ * @param context - Optional additional authenticated data (not encrypted, but authenticated)
+ * @returns Encrypted data containing nonce and ciphertext
+ * @example
+ * const { nonce, ciphertext } = await encrypt(data, key);
+ */
 export async function encrypt(
   plaintext: Uint8Array,
   key: SymmetricKey,
@@ -34,6 +49,15 @@ export async function encrypt(
   };
 }
 
+/**
+ * Decrypts data encrypted with encrypt().
+ * @param ciphertext - Encrypted data to decrypt
+ * @param nonce - 24-byte nonce from encrypt() result
+ * @param key - Same key used for encryption
+ * @param context - Must match context used during encryption
+ * @returns Decrypted plaintext
+ * @throws {EncryptionError} DECRYPTION_FAILED if authentication fails
+ */
 export async function decrypt(
   ciphertext: Uint8Array,
   nonce: Nonce,
@@ -57,6 +81,17 @@ export async function decrypt(
   }
 }
 
+/**
+ * Creates a streaming encryptor for large files using secretstream.
+ * @param key - 32-byte symmetric key from generateKey()
+ * @param fileId - Optional file identifier used as additional authenticated data per chunk
+ * @returns Stream object with header, push(), and dispose() methods
+ * @example
+ * const stream = await createEncryptStream(key, fileId);
+ * const chunk1 = stream.push(data1, false);
+ * const chunk2 = stream.push(data2, true); // isFinal=true for last chunk
+ * stream.dispose();
+ */
 export async function createEncryptStream(
   key: SymmetricKey,
   fileId?: FileId
@@ -93,6 +128,15 @@ export async function createEncryptStream(
   };
 }
 
+/**
+ * Creates a streaming decryptor for data encrypted with createEncryptStream().
+ * @param key - Same key used for encryption
+ * @param header - 24-byte header from the encrypt stream
+ * @param fileId - Must match fileId used during encryption
+ * @returns Stream object with pull(), finalize(), and dispose() methods
+ * @throws {EncryptionError} SEGMENT_AUTH_FAILED if chunk authentication fails
+ * @throws {EncryptionError} STREAM_TRUNCATED if finalize() called without receiving final chunk
+ */
 export async function createDecryptStream(
   key: SymmetricKey,
   header: SecretstreamHeader,
