@@ -13,6 +13,7 @@ export const ErrorCode = {
   INVALID_SEED_SIZE: 'INVALID_SEED_SIZE',
   INVALID_BASE64: 'INVALID_BASE64',
   INVALID_CONTEXT_SIZE: 'INVALID_CONTEXT_SIZE',
+  UNSUPPORTED_VERSION: 'UNSUPPORTED_VERSION',
 } as const;
 
 export type ErrorCode = (typeof ErrorCode)[keyof typeof ErrorCode];
@@ -140,5 +141,15 @@ export function invalidContextSize(actual: number, expected = 8): EncryptionErro
   return new EncryptionError(
     ErrorCode.INVALID_CONTEXT_SIZE,
     `Invalid context size: got ${actual} characters, expected ${expected}`
+  );
+}
+
+/**
+ * Create error for unsupported version.
+ */
+export function unsupportedVersion(actual: number, supported: number[]): EncryptionError {
+  return new EncryptionError(
+    ErrorCode.UNSUPPORTED_VERSION,
+    `Unsupported version: ${actual}. Supported versions: ${supported.join(', ')}`
   );
 }

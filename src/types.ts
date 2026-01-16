@@ -1,4 +1,4 @@
-import type { Nonce, Ciphertext, SecretstreamHeader, X25519PublicKey, X25519PrivateKey, Ed25519PublicKey, Ed25519PrivateKey } from './branded.ts';
+import type { Nonce, Ciphertext, SecretstreamHeader, X25519PublicKey, X25519PrivateKey, Ed25519PublicKey, Ed25519PrivateKey, Salt } from './branded.ts';
 
 /**
  * Result of single-shot encryption.
@@ -116,6 +116,17 @@ export type StreamingHasher = {
 export type KdfContext = string;
 
 /**
+ * Result of password-based encryption.
+ * Contains all data needed for decryption (except the password).
+ */
+export type PasswordEncryptedData = {
+  readonly version: 1;
+  readonly salt: Salt;           // 16 bytes (Argon2 salt)
+  readonly nonce: Nonce;         // 24 bytes
+  readonly ciphertext: Ciphertext;
+};
+
+/**
  * Cryptographic size constants.
  */
 export const SIZES = {
@@ -133,4 +144,5 @@ export const SIZES = {
   SEALED_BOX: 80,
   KDF_CONTEXT: 8,
   DEFAULT_CHUNK: 64 * 1024,
+  PASSWORD_SALT: 16,
 } as const;

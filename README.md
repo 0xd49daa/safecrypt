@@ -97,12 +97,37 @@ const wrapped = KeyWrappingProvider.wrapKeyAuthenticated(
 | `KeyWrappingProvider` | Asymmetric key wrapping (seal & authenticated) |
 | `KeyDerivation` | BIP-39 mnemonic → deterministic key hierarchy |
 | `HashProvider` | SHA-256 (IPFS compatible) & BLAKE2b |
+| `Password` | Password-based encryption (Argon2id + XChaCha20-Poly1305) |
+
+## Password-Based Encryption
+
+For encrypting data with user-provided passwords (local storage, exports, backups):
+
+```typescript
+import { encryptWithPassword, decryptWithPassword } from "@0xd49daa/safecrypt";
+
+// Encrypt with password
+const encrypted = await encryptWithPassword("sensitive data", "user-password");
+
+// Decrypt with password
+const decrypted = await decryptWithPassword(encrypted, "user-password");
+// → Uint8Array of original data
+
+// For advanced use: derive key separately
+import { deriveKeyFromPassword, randomBytes } from "@0xd49daa/safecrypt";
+
+const salt = await randomBytes(16);
+const key = await deriveKeyFromPassword("user-password", salt);
+```
+
+Uses Argon2id for key derivation (resistant to GPU/ASIC attacks) and XChaCha20-Poly1305 for encryption. The returned `PasswordEncryptedData` object contains the salt, nonce, and ciphertext needed for decryption.
 
 ## Cryptographic Primitives
 
 | Task | Algorithm | Why |
 |------|-----------|-----|
 | Symmetric encryption | XChaCha20-Poly1305 | AEAD, 192-bit nonce (safe random), no key rotation needed |
+| Password KDF | Argon2id | Memory-hard, resistant to GPU/ASIC attacks |
 | Key exchange | X25519 | Modern ECDH, 128-bit security |
 | Signing | Ed25519 | Fast, deterministic, no nonce issues |
 | Hashing | SHA-256 / BLAKE2b | SHA-256 for compatibility, BLAKE2b for speed |

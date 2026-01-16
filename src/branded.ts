@@ -37,6 +37,9 @@ export type ContentHash = Brand<Uint8Array, 'ContentHash'>;
 /** 64-byte BIP-39 derived seed */
 export type Seed = Brand<Uint8Array, 'Seed'>;
 
+/** 16-byte password salt for Argon2 */
+export type Salt = Brand<Uint8Array, 'Salt'>;
+
 /**
  * Validate and brand as SymmetricKey.
  * @throws EncryptionError if not exactly 32 bytes
@@ -155,6 +158,17 @@ export function asSeed(bytes: Uint8Array): Seed {
 }
 
 /**
+ * Validate and brand as Salt.
+ * @throws EncryptionError if not exactly 16 bytes
+ */
+export function asSalt(bytes: Uint8Array): Salt {
+  if (bytes.length !== SIZES.PASSWORD_SALT) {
+    throw invalidKeySize(bytes.length, SIZES.PASSWORD_SALT);
+  }
+  return bytes as Salt;
+}
+
+/**
  * Unsafe branding without validation.
  * Use only when source is trusted (e.g., output from libsodium functions).
  */
@@ -170,4 +184,5 @@ export const unsafe = {
   asEd25519PrivateKey: (bytes: Uint8Array): Ed25519PrivateKey => bytes as Ed25519PrivateKey,
   asContentHash: (bytes: Uint8Array): ContentHash => bytes as ContentHash,
   asSeed: (bytes: Uint8Array): Seed => bytes as Seed,
+  asSalt: (bytes: Uint8Array): Salt => bytes as Salt,
 };

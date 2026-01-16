@@ -84,6 +84,7 @@ Context must be exactly 8 ASCII characters.
 | Key wrapping (anon) | X25519 + XSalsa20 | `crypto_box_seal` |
 | Key wrapping (auth) | X25519 + XSalsa20 | `crypto_box_easy` |
 | Key derivation | HKDF | `crypto_kdf_derive_from_key` |
+| Password KDF | Argon2id | `crypto_pwhash` |
 | Hashing | SHA-256 | Web Crypto API |
 | Hashing (fast) | BLAKE2b | `crypto_generichash` |
 | Signing | Ed25519 | `crypto_sign_seed_keypair` |
@@ -93,8 +94,8 @@ Context must be exactly 8 ASCII characters.
 
 | Package | Version | Purpose |
 |---------|---------|---------|
-| `libsodium-wrappers` | 0.7.15 | Core crypto |
-| `@types/libsodium-wrappers` | 0.7.14 | TypeScript definitions |
+| `libsodium-wrappers-sumo` | 0.7.15 | Core crypto (sumo includes Argon2id) |
+| `@types/libsodium-wrappers-sumo` | 0.7.8 | TypeScript definitions |
 | `@scure/bip39` | 1.4.0 | BIP-39 mnemonics |
 
 ## Critical Implementation Rules

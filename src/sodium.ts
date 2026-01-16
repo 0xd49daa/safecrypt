@@ -1,10 +1,10 @@
-import type libsodium from 'libsodium-wrappers';
+import type libsodium from 'libsodium-wrappers-sumo';
 
 let sodiumInstance: typeof libsodium | null = null;
 let initPromise: Promise<typeof libsodium> | null = null;
 
 async function initializeSodium(): Promise<typeof libsodium> {
-  const sodium = await import('libsodium-wrappers');
+  const sodium = await import('libsodium-wrappers-sumo');
   await sodium.default.ready;
   sodiumInstance = sodium.default;
   return sodiumInstance;

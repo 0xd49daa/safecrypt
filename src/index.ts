@@ -6,6 +6,7 @@ export type {
   DecryptStream,
   KdfContext,
   StreamingHasher,
+  PasswordEncryptedData,
 } from './types.ts';
 
 export { SIZES } from './types.ts';
@@ -22,9 +23,10 @@ export type {
   Ed25519PrivateKey,
   ContentHash,
   Seed,
+  Salt,
 } from './branded.ts';
 
-export { asContentHash } from './branded.ts';
+export { asContentHash, asSalt } from './branded.ts';
 
 export { toBase64, fromBase64 } from './bytes.ts';
 
@@ -60,3 +62,9 @@ export {
 } from './key-wrapping.ts';
 
 export type { AuthenticatedWrappedKey } from './key-wrapping.ts';
+
+export {
+  deriveKeyFromPassword,
+  encryptWithPassword,
+  decryptWithPassword,
+} from './password.ts';
